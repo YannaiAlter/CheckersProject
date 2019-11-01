@@ -86,6 +86,8 @@ moveBlack(Board,Row,Column,NewBoard) :-
     set(Board,Row,Column,nil,NewBoardTemp),
     set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard).
 
+
+
 moveBlack(Board,Row,Column,NewBoard) :-
     get(Board,Row,Column,Res),
     Res=b,
@@ -101,3 +103,18 @@ moveBlack(Board,Row,Column,NewBoard) :-
     Value=nil,
     set(Board,Row,Column,nil,NewBoardTemp),
     set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard).
+
+
+range(X, L, H) :- X is L + 1, X < H.
+range(X, L, H) :- L1 is L + 1, L1 < H, range(X, L1, H).
+
+allBlackMoves(Board,Result) :-
+    size(N),
+    findall(Boards,
+    (range(Row,-1,N),range(Column,-1,N),moveBlack(Board,Row,Column,Boards)),Result).
+
+printAllMoves([]):-!.
+printAllMoves(Board):-
+Board=[Head|Tail],
+printArray(Head),
+printAllMoves(Tail).
