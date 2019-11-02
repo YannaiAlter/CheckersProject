@@ -169,10 +169,7 @@ range(X, L, H) :- L1 is L + 1, L1 < H, range(X, L1, H).
 allBlackMoves(Pos,Result) :-
     size(N),
     findall(Boards,
-    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,Boards)),MovesNoEats),
-    findall(EatBoards,
-    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,EatBoards)),EatMoves),
-    append(MovesNoEats,EatMoves,Result),
+    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,Boards)),Result),
     \+ Result=[].
 
 allBlackEats(Pos,Result) :-
@@ -259,13 +256,17 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
 staticval(Pos,Value) :- 
 size(N),
 Pos=(Board,_),
-findall(Sum,(range(X,-1,N),range(Y,-1,N),get(Board,X,Y,Element),Element=b,Sum is X+Y),L),
-sumlist(L,Value).
+findall(Sum,(range(X,-1,N),range(Y,-1,N),get(Board,X,Y,Element),Element=w,Sum is X+Y),L),
+length(L,WhitePlayersLeft),
+TotalPlayers is N*3/2,
+Value is TotalPlayers -WhitePlayersLeft.
 
 moves(Pos,PosList) :-
 Pos=(_,Turn),
 Turn=black,
-allBlackMoves(Pos,PosList).
+allBlackMoves(Pos,MoveBoardList),
+allBlackEats(Pos,EatBoardList),
+append(MoveBoardList,EatBoardList,PosList).
 
 max_to_move(Pos) :-
 Pos=(_,Turn),
@@ -310,3 +311,15 @@ betterof(Pos, Val, _Pos1, Val1, Pos, Val) :-
 betterof(Pos, Val, _Pos1, Val1, Pos,Val) :-
    max_to_move(Pos), Val<Val1, !.
 betterof(_,_,Pos1,Val1,Pos1,Val1).
+
+changeTurn():-
+array((Board,_)),
+retractall(array(_)),
+assert(array((Board,white))).
+
+makeBlackMove() :-
+array(CurPos),
+retractall(array(_)),
+alphabeta(CurPos,-1000,1000,X,_),
+assert(array(X)),
+printArray(X).
