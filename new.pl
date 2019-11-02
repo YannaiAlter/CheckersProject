@@ -172,6 +172,12 @@ allBlackMoves(Pos,Result) :-
     (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,Boards)),Result),
     \+ Result=[].
 
+allWhiteMoves(Pos,Result) :-
+    size(N),
+    findall(Boards,
+    (range(Row,-1,N),range(Column,-1,N),moveWhite(Pos,Row,Column,Boards)),Result),
+    \+ Result=[].
+
 allBlackEats(Pos,Result) :-
     size(N),
     findall(Boards,
@@ -263,10 +269,13 @@ Value is TotalPlayers -WhitePlayersLeft.
 
 moves(Pos,PosList) :-
 Pos=(_,Turn),
+(
 Turn=black,
 allBlackMoves(Pos,MoveBoardList),
 allBlackEats(Pos,EatBoardList),
-append(MoveBoardList,EatBoardList,PosList).
+append(MoveBoardList,EatBoardList,PosList),!;
+allWhiteMoves(Pos,PosList)
+).
 
 max_to_move(Pos) :-
 Pos=(_,Turn),
