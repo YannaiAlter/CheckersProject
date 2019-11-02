@@ -7,11 +7,11 @@ build(X, N, List)  :-
 
 initialState(N) :-
 retractall(size(_)),
-retractall(array(_)),
+retractall(array((_))),
 assert(size(N)),
 BoardSize is N*N,
 build(nil,BoardSize,Array),
-assert(array(Array)),
+assert(array((Array,white))),
 setEveryTwo(b,0,0),
 setEveryTwo(b,1,1),
 setEveryTwo(b,2,0),
@@ -27,10 +27,10 @@ size(N),
 StartColumn>=N,!.
 
 setEveryTwo(Value,StartRow,StartColumn) :-
-array(Array),
+array((Array,_)),
 set(Array,StartRow,StartColumn,Value,NewArray),
 retractall(array(_)),
-assert(array(NewArray)),
+assert(array((NewArray,white))),
 NewColumn is StartColumn+2,
 setEveryTwo(Value,StartRow,NewColumn).
 
@@ -48,7 +48,8 @@ set(Array,Row,Column,Value,NewArray) :-
   nth0(Index, List, _, R),
   nth0(Index, K, Value, R).
 
-printArray(Array) :-
+printArray(Pos) :-
+Pos=(Array,_),
 size(N),
 printArray(Array,N),!.
 
@@ -108,6 +109,59 @@ moveBlack(Pos,Row,Column,NewPos) :-
     set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),
     NewPos=(NewBoard,white).
 
+
+moveWhite(Pos,Row,Column,NewPos) :-
+    Pos=(Board,Turn),
+    Turn=white,
+    get(Board,Row,Column,Res),
+    Res=b,
+    LeftMoveRow is Row-1,
+    LeftMoveColumn is Column+1,
+%    RightMoveRow is Row+1,
+%    RightMoveColumn is Column+1,
+    size(N),
+    NewN is N-1,
+    inRange(LeftMoveRow,0,NewN),
+    inRange(LeftMoveColumn,0,NewN),
+    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is nil
+    Value=nil,
+    set(Board,Row,Column,nil,NewBoardTemp),
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard),
+    NewPos = (NewBoard,black).
+
+moveWhite(Pos,Row,Column,NewPos) :-
+    Pos=(Board,Turn),
+    Turn=white,
+    get(Board,Row,Column,Res),
+    Res=b,
+%    LeftMoveRow is Row+1,
+%    LeftMoveColumn is Column-1,
+    RightMoveRow is Row-1,
+    RightMoveColumn is Column+1,
+    size(N),
+    NewN is N-1,
+    inRange(RightMoveRow,0,NewN),
+    inRange(RightMoveColumn,0,NewN),
+    get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is nil
+    Value=nil,
+    set(Board,Row,Column,nil,NewBoardTemp),
+    set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),
+    NewPos=(NewBoard,black).
+
+realMoveWhite(Row,Column,NewRow,NewColumn) :-
+    array((Board,Turn)),
+    Turn=white,
+    size(N),
+    NewN is N-1,
+    inRange(NewRow,0,NewN),
+    inRange(NewColumn,0,NewN),
+    get(Board,NewRow,NewColumn,Value), %Board[NewPos] is nil
+    Value=nil,
+    set(Board,Row,Column,nil,NewBoard),
+    set(NewBoard,NewRow,NewColumn,w,FinalBoard),
+    retractall(array(_)),
+    assert(array((FinalBoard,black))),
+    printArray((FinalBoard,black)).
 
 range(X, L, H) :- X is L + 1, X < H.
 range(X, L, H) :- L1 is L + 1, L1 < H, range(X, L1, H).
@@ -202,7 +256,12 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
      append(List,AllLeftEat,List1),
      append(List1,AllRightEat,ArrayOfBoards)).
 
-staticval(_,Value) :- Value=1.
+staticval(Pos,Value) :- 
+size(N),
+Pos=(Board,_),
+findall(Sum,(range(X,-1,N),range(Y,-1,N),get(Board,X,Y,Element),Element=b,Sum is X+Y),L),
+sumlist(L,Value).
+
 moves(Pos,PosList) :-
 Pos=(_,Turn),
 Turn=black,
