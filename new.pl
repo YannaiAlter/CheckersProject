@@ -87,7 +87,6 @@ moveBlack(Board,Row,Column,NewBoard) :-
     set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard).
 
 
-
 moveBlack(Board,Row,Column,NewBoard) :-
     get(Board,Row,Column,Res),
     Res=b,
@@ -111,10 +110,65 @@ range(X, L, H) :- L1 is L + 1, L1 < H, range(X, L1, H).
 allBlackMoves(Board,Result) :-
     size(N),
     findall(Boards,
-    (range(Row,-1,N),range(Column,-1,N),moveBlack(Board,Row,Column,Boards)),Result).
+    (range(Row,-1,N),range(Column,-1,N),moveBlack(Board,Row,Column,Boards)),Result),
+    \+ Result=[].
 
 printAllMoves([]):-!.
 printAllMoves(Board):-
 Board=[Head|Tail],
 printArray(Head),
+nl,nl,
 printAllMoves(Tail).
+
+
+blackEatWhite(Board,Row,Column,NewBoard) :-
+    get(Board,Row,Column,Res),
+    Res=b,
+    RightEnemyRow is Row+1,
+    RightEnemyColumn is Column-1,
+    size(N),
+    NewN is N-1,
+    inRange(RightEnemyRow,0,NewN),
+    inRange(RightEnemyColumn,0,NewN),
+    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is nil
+    Value=w,
+    RightMoveRow is Row+2,
+    RightMoveColumn is Column-2,
+    inRange(RightMoveRow,0,NewN),
+    inRange(RightMoveColumn,0,NewN),
+    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is nil
+    SecondValue=nil,
+    set(Board,Row,Column,nil,BoardAfterDeleteBlack),
+    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,nil,BoardAfterDeleteEnemy),
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard).
+    
+    
+    blackEatWhite(Board,Row,Column,NewBoard) :-
+    get(Board,Row,Column,Res),
+    Res=b,
+    RightEnemyRow is Row+1,
+    RightEnemyColumn is Column+1,
+    size(N),
+    NewN is N-1,
+    inRange(RightEnemyRow,0,NewN),
+    inRange(RightEnemyColumn,0,NewN),
+    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is nil
+    Value=w,
+    RightMoveRow is Row+2,
+    RightMoveColumn is Column+2,
+    inRange(RightMoveRow,0,NewN),
+    inRange(RightMoveColumn,0,NewN),
+    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is nil
+    SecondValue=nil,
+    set(Board,Row,Column,nil,BoardAfterDeleteBlack),
+    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,nil,BoardAfterDeleteEnemy),
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard).
+
+    blackEatWhiteAllPos([],_,_,[]):-!.
+    blackEatWhiteAllPos(Board,Row,Column,ArrayOfBoards) :-
+     findall(Result,blackEatWhite(Board,Row,Column,Result),List),
+     (List=[],ArrayOfBoards=[],!;List=[LeftEat|RightEat],
+     blackEatWhiteAllPos(LeftEat,Row,Column,AllLeftEat),
+     blackEatWhiteAllPos(RightEat,Row,Column,AllRightEat),
+     append(List,AllLeftEat,List1),
+     append(List1,AllRightEat,ArrayOfBoards)).
