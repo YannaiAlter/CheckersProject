@@ -267,7 +267,9 @@ length(L,WhitePlayersLeft),
 TotalPlayers is N*3/2,
 Value is TotalPlayers -WhitePlayersLeft.
 
-moves(Pos,PosList) :-
+moves(_,_,0) :- !,fail.
+
+moves(Pos,PosList,_) :-
 Pos=(_,Turn),
 (
 Turn=black,
@@ -289,24 +291,25 @@ Turn=white.
    Root's backed-up value is in the interval [alpha,beta]  */
 /* Interval gets smaller as search progresses */
 
-alphabeta(Pos,Alpha,Beta,GoodPos,Val) :-
-   moves(Pos,PosList), !,    /*user-provided*/
-   boundedbest(PosList,Alpha,Beta,GoodPos,Val).
-alphabeta(Pos,_,_,_,Val) :- staticval(Pos,Val).  /*user-provided*/
+alphabeta(Pos,Alpha,Beta,GoodPos,Val,Depth) :-
+   moves(Pos,PosList,Depth), !,    /*user-provided*/
+   boundedbest(PosList,Alpha,Beta,GoodPos,Val,Depth).
+alphabeta(Pos,_,_,_,Val,_) :- staticval(Pos,Val).  /*user-provided*/
 
-boundedbest([Pos | PosList], Alpha, Beta, GoodPos, GoodVal) :-
-   alphabeta(Pos,Alpha, Beta, _, Val),
-   goodenough(PosList, Alpha, Beta, Pos, Val, GoodPos, GoodVal).
+boundedbest([Pos | PosList], Alpha, Beta, GoodPos, GoodVal,Depth) :-
+   NewDepth is Depth-1,
+   alphabeta(Pos,Alpha, Beta, _, Val,NewDepth),
+   goodenough(PosList, Alpha, Beta, Pos, Val, GoodPos, GoodVal,Depth).
 
-goodenough([],_,_,Pos,Val,Pos,Val) :- !.
-goodenough(_, _Alpha, Beta, Pos, Val, Pos, Val) :-
+goodenough([],_,_,Pos,Val,Pos,Val,_) :- !.
+goodenough(_, _Alpha, Beta, Pos, Val, Pos, Val,_) :-
    min_to_move(Pos), Val>Beta, !.    /*Maximizer attained upper bound*/
-goodenough(_,Alpha,_Beta,Pos,Val,Pos,Val) :- 
+goodenough(_,Alpha,_Beta,Pos,Val,Pos,Val,_) :- 
    max_to_move(Pos), Val<Alpha, !.   /*Minimizer attained lower bound*/
 
-goodenough(PosList, Alpha, Beta, Pos, Val, GoodPos, GoodVal) :-
+goodenough(PosList, Alpha, Beta, Pos, Val, GoodPos, GoodVal,Depth) :-
    newbounds(Alpha, Beta, Pos,Val, NewAlpha, NewBeta),
-   boundedbest(PosList, NewAlpha, NewBeta, Pos1, Val1),
+   boundedbest(PosList, NewAlpha, NewBeta, Pos1, Val1,Depth),
    betterof(Pos, Val, Pos1, Val1, GoodPos, GoodVal).
 
 newbounds(Alpha, Beta, Pos, Val, Val, Beta) :-
@@ -329,6 +332,6 @@ assert(array((Board,white))).
 makeBlackMove() :-
 array(CurPos),
 retractall(array(_)),
-alphabeta(CurPos,-1000,1000,X,_),
+alphabeta(CurPos,-1000,1000,X,_,1),
 assert(array(X)),
 printArray(X).
