@@ -70,7 +70,9 @@ inRange(X,Start,End) :-
 X =< End,
 X >= Start.
 
-moveBlack(Board,Row,Column,NewBoard) :-
+moveBlack(Pos,Row,Column,NewPos) :-
+    Pos=(Board,Turn),
+    Turn=black,
     get(Board,Row,Column,Res),
     Res=b,
     LeftMoveRow is Row+1,
@@ -84,10 +86,12 @@ moveBlack(Board,Row,Column,NewBoard) :-
     get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is nil
     Value=nil,
     set(Board,Row,Column,nil,NewBoardTemp),
-    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard).
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard),
+    NewPos = (NewBoard,white).
 
-
-moveBlack(Board,Row,Column,NewBoard) :-
+moveBlack(Pos,Row,Column,NewPos) :-
+    Pos=(Board,Turn),
+    Turn=black,
     get(Board,Row,Column,Res),
     Res=b,
 %    LeftMoveRow is Row+1,
@@ -101,27 +105,36 @@ moveBlack(Board,Row,Column,NewBoard) :-
     get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is nil
     Value=nil,
     set(Board,Row,Column,nil,NewBoardTemp),
-    set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard).
+    set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),
+    NewPos=(NewBoard,white).
 
 
 range(X, L, H) :- X is L + 1, X < H.
 range(X, L, H) :- L1 is L + 1, L1 < H, range(X, L1, H).
 
-allBlackMoves(Board,Result) :-
+allBlackMoves(Pos,Result) :-
     size(N),
     findall(Boards,
-    (range(Row,-1,N),range(Column,-1,N),moveBlack(Board,Row,Column,Boards)),Result),
+    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,Boards)),Result),
     \+ Result=[].
 
+allBlackEats(Pos,Result) :-
+    size(N),
+    findall(Boards,
+    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,Boards)),Result),
+    \+ Result=[].
+    
 printAllMoves([]):-!.
-printAllMoves(Board):-
-Board=[Head|Tail],
-printArray(Head),
+printAllMoves(Pos):-
+Pos=[Head|Tail],
+Head=(Board,_),
+printArray(Board),
 nl,nl,
 printAllMoves(Tail).
 
 
-blackEatWhite(Board,Row,Column,NewBoard) :-
+blackEatWhite(Pos,Row,Column,NewPos) :-
+    Pos=(Board,_),
     get(Board,Row,Column,Res),
     Res=b,
     RightEnemyRow is Row+1,
@@ -140,10 +153,12 @@ blackEatWhite(Board,Row,Column,NewBoard) :-
     SecondValue=nil,
     set(Board,Row,Column,nil,BoardAfterDeleteBlack),
     set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,nil,BoardAfterDeleteEnemy),
-    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard).
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard),
+    NewPos=(NewBoard,white).
     
     
-    blackEatWhite(Board,Row,Column,NewBoard) :-
+    blackEatWhite(Pos,Row,Column,NewPos) :-
+    Pos=(Board,_),
     get(Board,Row,Column,Res),
     Res=b,
     RightEnemyRow is Row+1,
@@ -162,13 +177,68 @@ blackEatWhite(Board,Row,Column,NewBoard) :-
     SecondValue=nil,
     set(Board,Row,Column,nil,BoardAfterDeleteBlack),
     set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,nil,BoardAfterDeleteEnemy),
-    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard).
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard),
+    NewPos=(NewBoard,white).
+
 
     blackEatWhiteAllPos([],_,_,[]):-!.
-    blackEatWhiteAllPos(Board,Row,Column,ArrayOfBoards) :-
-     findall(Result,blackEatWhite(Board,Row,Column,Result),List),
-     (List=[],ArrayOfBoards=[],!;List=[LeftEat|RightEat],
-     blackEatWhiteAllPos(LeftEat,Row,Column,AllLeftEat),
-     blackEatWhiteAllPos(RightEat,Row,Column,AllRightEat),
+    blackEatWhiteAllPos(Pos,Row,Column,ArrayOfBoards) :-
+     findall(Result,blackEatWhite(Pos,Row,Column,Result),List),
+     (List=[],ArrayOfBoards=[],!;List=[LeftEatPos|RightEatPos],
+     NewRow is Row+2,
+     NewLeftColumn is Column-2,
+     NewRightColumn is Column+2,
+     blackEatWhiteAllPos(LeftEatPos,NewRow,NewLeftColumn,AllLeftEat), %changing to black in order to find more eats
+     blackEatWhiteAllPos(RightEatPos,NewRow,NewRightColumn,AllRightEat),
      append(List,AllLeftEat,List1),
      append(List1,AllRightEat,ArrayOfBoards)).
+
+staticval(_,Value) :- Value=1.
+moves(Pos,PosList) :-
+Pos=(_,Turn),
+Turn=black,
+allBlackMoves(Pos,PosList).
+
+max_to_move(Pos) :-
+Pos=(_,Turn),
+Turn=black.
+
+min_to_move(Pos):-
+Pos=(_,Turn),
+Turn=white.
+     /* alpha is the minimal value of max nodes; already guaranteed to achieve,
+   beta is the maximum (worst) value of min nodes; guaranteed to achieve 
+   Root's backed-up value is in the interval [alpha,beta]  */
+/* Interval gets smaller as search progresses */
+
+alphabeta(Pos,Alpha,Beta,GoodPos,Val) :-
+   moves(Pos,PosList), !,    /*user-provided*/
+   boundedbest(PosList,Alpha,Beta,GoodPos,Val).
+alphabeta(Pos,_,_,_,Val) :- staticval(Pos,Val).  /*user-provided*/
+
+boundedbest([Pos | PosList], Alpha, Beta, GoodPos, GoodVal) :-
+   alphabeta(Pos,Alpha, Beta, _, Val),
+   goodenough(PosList, Alpha, Beta, Pos, Val, GoodPos, GoodVal).
+
+goodenough([],_,_,Pos,Val,Pos,Val) :- !.
+goodenough(_, _Alpha, Beta, Pos, Val, Pos, Val) :-
+   min_to_move(Pos), Val>Beta, !.    /*Maximizer attained upper bound*/
+goodenough(_,Alpha,_Beta,Pos,Val,Pos,Val) :- 
+   max_to_move(Pos), Val<Alpha, !.   /*Minimizer attained lower bound*/
+
+goodenough(PosList, Alpha, Beta, Pos, Val, GoodPos, GoodVal) :-
+   newbounds(Alpha, Beta, Pos,Val, NewAlpha, NewBeta),
+   boundedbest(PosList, NewAlpha, NewBeta, Pos1, Val1),
+   betterof(Pos, Val, Pos1, Val1, GoodPos, GoodVal).
+
+newbounds(Alpha, Beta, Pos, Val, Val, Beta) :-
+   min_to_move(Pos), Val>Alpha, !.   /*Maximizer increased the lower bound*/
+newbounds(Alpha,Beta, Pos, Val, Alpha, Val) :- 
+   max_to_move(Pos), Val<Beta, !.    /*Minimizer decreased the upper bound*/
+newbounds(Alpha, Beta,_,_,Alpha, Beta).
+
+betterof(Pos, Val, _Pos1, Val1, Pos, Val) :-
+   min_to_move(Pos), Val>Val1, !.
+betterof(Pos, Val, _Pos1, Val1, Pos,Val) :-
+   max_to_move(Pos), Val<Val1, !.
+betterof(_,_,Pos1,Val1,Pos1,Val1).
