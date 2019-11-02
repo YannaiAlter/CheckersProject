@@ -115,15 +115,24 @@ range(X, L, H) :- L1 is L + 1, L1 < H, range(X, L1, H).
 allBlackMoves(Pos,Result) :-
     size(N),
     findall(Boards,
-    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,Boards)),Result),
+    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,Boards)),MovesNoEats),
+    findall(EatBoards,
+    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,EatBoards)),EatMoves),
+    append(MovesNoEats,EatMoves,Result),
     \+ Result=[].
 
 allBlackEats(Pos,Result) :-
     size(N),
     findall(Boards,
-    (range(Row,-1,N),range(Column,-1,N),moveBlack(Pos,Row,Column,Boards)),Result),
-    \+ Result=[].
-    
+    (range(Row,-1,N),range(Column,-1,N),blackEatWhiteAllPos(Pos,Row,Column,Boards)),ResultDistinct),
+    unionAll(ResultDistinct,Result).
+
+unionAll([],[]):-!.
+unionAll(List,Result) :-
+List=[Head|Tail],
+unionAll(Tail,TailUnionResult),
+append(Head,TailUnionResult,Result).
+
 printAllMoves([]):-!.
 printAllMoves(Pos):-
 Pos=[Head|Tail],
