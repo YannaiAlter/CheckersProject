@@ -155,6 +155,8 @@ realMoveWhite(Row,Column,NewRow,NewColumn) :-
     NewN is N-1,
     inRange(NewRow,0,NewN),
     inRange(NewColumn,0,NewN),
+    NewRow is Row-1,
+    (NewColumn is Column+1,!;NewColumn is Column-1,!),
     get(Board,NewRow,NewColumn,Value), %Board[NewPos] is nil
     Value=nil,
     set(Board,Row,Column,nil,NewBoard),
@@ -331,7 +333,9 @@ assert(array((Board,white))).
 
 makeBlackMove() :-
 array(CurPos),
+CurPos = (_,Turn),
+Turn=black,
 retractall(array(_)),
-alphabeta(CurPos,-1000,1000,X,_,1),
+alphabeta(CurPos,-1000,1000,X,_,2),
 assert(array(X)),
 printArray(X).
