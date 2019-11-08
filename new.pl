@@ -10,7 +10,7 @@ retractall(size(_)),
 retractall(array((_))),
 assert(size(N)),
 BoardSize is N*N,
-build(nil,BoardSize,Array),
+build(n,BoardSize,Array),
 assert(array((Array,white))),
 setEveryTwo(b,0,0),
 setEveryTwo(b,1,1),
@@ -49,7 +49,9 @@ set(Array,Row,Column,Value,NewArray) :-
   nth0(Index, K, Value, R).
 
 printArray(Pos) :-
-Pos=(Array,_),
+Pos=(Array,Turn),
+ansi_format([bold,fg(cyan)], 'Turn: ~w', [Turn]),
+nl,
 size(N),
 printArray(Array,N),!.
 
@@ -84,9 +86,9 @@ moveBlack(Pos,Row,Column,NewPos) :-
     NewN is N-1,
     inRange(LeftMoveRow,0,NewN),
     inRange(LeftMoveColumn,0,NewN),
-    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is nil
-    Value=nil,
-    set(Board,Row,Column,nil,NewBoardTemp),
+    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoardTemp),
     set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard),
     NewPos = (NewBoard,white).
 
@@ -103,9 +105,9 @@ moveBlack(Pos,Row,Column,NewPos) :-
     NewN is N-1,
     inRange(RightMoveRow,0,NewN),
     inRange(RightMoveColumn,0,NewN),
-    get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is nil
-    Value=nil,
-    set(Board,Row,Column,nil,NewBoardTemp),
+    get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoardTemp),
     set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),
     NewPos=(NewBoard,white).
 
@@ -123,9 +125,9 @@ moveWhite(Pos,Row,Column,NewPos) :-
     NewN is N-1,
     inRange(LeftMoveRow,0,NewN),
     inRange(LeftMoveColumn,0,NewN),
-    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is nil
-    Value=nil,
-    set(Board,Row,Column,nil,NewBoardTemp),
+    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoardTemp),
     set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard),
     NewPos = (NewBoard,black).
 
@@ -142,9 +144,9 @@ moveWhite(Pos,Row,Column,NewPos) :-
     NewN is N-1,
     inRange(RightMoveRow,0,NewN),
     inRange(RightMoveColumn,0,NewN),
-    get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is nil
-    Value=nil,
-    set(Board,Row,Column,nil,NewBoardTemp),
+    get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoardTemp),
     set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),
     NewPos=(NewBoard,black).
 
@@ -157,9 +159,9 @@ realMoveWhite(Row,Column,NewRow,NewColumn) :-
     inRange(NewColumn,0,NewN),
     NewRow is Row-1,
     (NewColumn is Column+1,!;NewColumn is Column-1,!),
-    get(Board,NewRow,NewColumn,Value), %Board[NewPos] is nil
-    Value=nil,
-    set(Board,Row,Column,nil,NewBoard),
+    get(Board,NewRow,NewColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoard),
     set(NewBoard,NewRow,NewColumn,w,FinalBoard),
     retractall(array(_)),
     assert(array((FinalBoard,black))),
@@ -211,16 +213,16 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     NewN is N-1,
     inRange(RightEnemyRow,0,NewN),
     inRange(RightEnemyColumn,0,NewN),
-    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is nil
+    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
     Value=w,
     RightMoveRow is Row+2,
     RightMoveColumn is Column-2,
     inRange(RightMoveRow,0,NewN),
     inRange(RightMoveColumn,0,NewN),
-    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is nil
-    SecondValue=nil,
-    set(Board,Row,Column,nil,BoardAfterDeleteBlack),
-    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,nil,BoardAfterDeleteEnemy),
+    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is n
+    SecondValue=n,
+    set(Board,Row,Column,n,BoardAfterDeleteBlack),
+    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
     set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard),
     NewPos=(NewBoard,white).
     
@@ -235,16 +237,16 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     NewN is N-1,
     inRange(RightEnemyRow,0,NewN),
     inRange(RightEnemyColumn,0,NewN),
-    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is nil
+    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
     Value=w,
     RightMoveRow is Row+2,
     RightMoveColumn is Column+2,
     inRange(RightMoveRow,0,NewN),
     inRange(RightMoveColumn,0,NewN),
-    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is nil
-    SecondValue=nil,
-    set(Board,Row,Column,nil,BoardAfterDeleteBlack),
-    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,nil,BoardAfterDeleteEnemy),
+    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is n
+    SecondValue=n,
+    set(Board,Row,Column,n,BoardAfterDeleteBlack),
+    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
     set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard),
     NewPos=(NewBoard,white).
 
