@@ -20,7 +20,9 @@ SecondWhite is N-2,
 ThirdWhite is N-3,
 setEveryTwo(w,FirstWhite,1),
 setEveryTwo(w,SecondWhite,0),
-setEveryTwo(w,ThirdWhite,1).
+setEveryTwo(w,ThirdWhite,1),
+array(X),
+printArray(X).
 
 setEveryTwo(_,_,StartColumn) :-
 size(N),
@@ -203,7 +205,6 @@ append(Head,TailUnionResult,Result).
 printAllMoves([]):-!.
 printAllMoves(Pos):-
 Pos=[Head|Tail],
-Head=(Board,_),
 printArray(Head),
 nl,nl,
 printAllMoves(Tail).
@@ -367,7 +368,6 @@ Turn=white.
 
 alphabeta(Pos,Alpha,Beta,GoodPos,Val,Depth) :-
    moves(Pos,PosList,Depth), !,    /*user-provided*/
-   write(PosList),nl,nl,
    boundedbest(PosList,Alpha,Beta,GoodPos,Val,Depth).
 
 alphabeta(Pos,_,_,_,Val,_) :- staticval(Pos,Val).  /*user-provided*/
@@ -406,10 +406,35 @@ retractall(array(_)),
 assert(array((Board,white))).
 
 makeBlackMove() :-
-array(CurPos),
-CurPos = (_,Turn),
-Turn=black,
-retractall(array(_)),
-alphabeta(CurPos,-1000,1000,X,_,2),
-assert(array(X)),
-printArray(X).
+    array(CurPos),
+    CurPos = (_,Turn),
+    Turn=black,
+    retractall(array(_)),
+    alphabeta(CurPos,-1000,1000,X,_,2),
+    assert(array(X)),
+    printArray(X).
+
+setAllNil(Array,[],Array) :- write(Array).
+
+setAllNil(Array,ListOfPositions,FinalArray) :-
+    ListOfPositions = [Head | Tail],
+    Head=(X,Y),
+    set(Array,X,Y,n,NewArray),
+    setAllNil(NewArray,Tail,FinalArray).
+
+eatBlack(Row,Column,EatList,TargetRow,TargetColumn) :-
+    array(CurPos),
+    CurPos = (Array,Turn),
+    Turn=white,
+    get(Array,Row,Column,Result),
+    Result=w,
+    get(Array,TargetRow,TargetColumn,SecondResult),
+    SecondResult=n,
+    set(Array,TargetRow,TargetColumn,w,NewArrayOne),
+    set(NewArrayOne,Row,Column,n,NewArrayTwo),
+    setAllNil(NewArrayTwo,EatList,FinalArray),
+    whiteEatBlackAllPos(CurPos,Row,Column,AllEatPositions),
+    member((FinalArray,black),AllEatPositions),
+    retractall(array(_)),
+    assert(array((FinalArray,black))),!.
+    % if final array can be found on whiteeatblackallpos then it is correct move
