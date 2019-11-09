@@ -66,7 +66,9 @@ printArray(Array,N),!.
 
 printArray(Array,N) :-
 Array = [Head|Tail],
-write(Head),
+(Head=w,ansi_format([bold,fg(yellow)], '~w', [Head]),!;
+Head=b,ansi_format([bold,fg(red)], '~w', [Head]),!;
+write(Head),!),
 write(" "),
 NewRows is N-1,
 printArray(Tail,NewRows).
@@ -307,7 +309,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     blackEatWhiteAllPos(Pos,Row,Column,ArrayOfBoards) :-
      findall(Result,blackEatWhite(Pos,Row,Column,Result),List),
      (List=[],ArrayOfBoards=[],!;List=[LeftEatPos|RightEatPos],
-     NewRow is Row-2,
+     NewRow is Row+2,
      NewLeftColumn is Column-2,
      NewRightColumn is Column+2,
      blackEatWhiteAllPos(LeftEatPos,NewRow,NewLeftColumn,AllLeftEat), %changing to black in order to find more eats
@@ -319,7 +321,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     whiteEatBlackAllPos(Pos,Row,Column,ArrayOfBoards) :-
      findall(Result,whiteEatBlack(Pos,Row,Column,Result),List),
      (List=[],ArrayOfBoards=[],!;List=[LeftEatPos|RightEatPos],
-     NewRow is Row+2,
+     NewRow is Row-2,
      NewLeftColumn is Column-2,
      NewRightColumn is Column+2,
      whiteEatBlackAllPos(LeftEatPos,NewRow,NewLeftColumn,AllLeftEat), %changing to black in order to find more eats
@@ -436,5 +438,6 @@ eatBlack(Row,Column,EatList,TargetRow,TargetColumn) :-
     whiteEatBlackAllPos(CurPos,Row,Column,AllEatPositions),
     member((FinalArray,black),AllEatPositions),
     retractall(array(_)),
-    assert(array((FinalArray,black))),!.
+    assert(array((FinalArray,black))),
+    printArray((FinalArray,black)),!.
     % if final array can be found on whiteeatblackallpos then it is correct move
