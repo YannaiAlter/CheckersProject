@@ -116,7 +116,7 @@ moveWhite(Pos,Row,Column,NewPos) :-
     Pos=(Board,Turn),
     Turn=white,
     get(Board,Row,Column,Res),
-    Res=b,
+    Res=w,
     LeftMoveRow is Row-1,
     LeftMoveColumn is Column+1,
 %    RightMoveRow is Row+1,
@@ -128,14 +128,14 @@ moveWhite(Pos,Row,Column,NewPos) :-
     get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
     Value=n,
     set(Board,Row,Column,n,NewBoardTemp),
-    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard),
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,w,NewBoard),
     NewPos = (NewBoard,black).
 
 moveWhite(Pos,Row,Column,NewPos) :-
     Pos=(Board,Turn),
     Turn=white,
     get(Board,Row,Column,Res),
-    Res=b,
+    Res=w,
 %    LeftMoveRow is Row+1,
 %    LeftMoveColumn is Column-1,
     RightMoveRow is Row-1,
@@ -147,7 +147,7 @@ moveWhite(Pos,Row,Column,NewPos) :-
     get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is n
     Value=n,
     set(Board,Row,Column,n,NewBoardTemp),
-    set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),
+    set(NewBoardTemp,RightMoveRow,RightMoveColumn,w,NewBoard),
     NewPos=(NewBoard,black).
 
 realMoveWhite(Row,Column,NewRow,NewColumn) :-
@@ -204,7 +204,7 @@ printAllMoves([]):-!.
 printAllMoves(Pos):-
 Pos=[Head|Tail],
 Head=(Board,_),
-printArray(Board),
+printArray(Head),
 nl,nl,
 printAllMoves(Tail).
 
@@ -329,10 +329,14 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
 staticval(Pos,Value) :- 
 size(N),
 Pos=(Board,_),
-findall(Sum,(range(X,-1,N),range(Y,-1,N),get(Board,X,Y,Element),Element=w,Sum is X+Y),L),
-length(L,WhitePlayersLeft),
+findall(Sum,(range(X,-1,N),range(Y,-1,N),get(Board,X,Y,Element),Element=w,Sum is X+Y),L1),
+length(L1,WhitePlayersLeft),
 TotalPlayers is N*3/2,
-Value is TotalPlayers -WhitePlayersLeft.
+BlackEatWhiteCount is TotalPlayers -WhitePlayersLeft,
+findall(Sum,(range(X,-1,N),range(Y,-1,N),get(Board,X,Y,Element),Element=b,Sum is X+Y),L2),
+length(L2,BlackPlayersLeft),
+WhiteEatBlackCount is TotalPlayers-BlackPlayersLeft,
+Value is BlackEatWhiteCount - WhiteEatBlackCount.
 
 moves(_,_,0) :- !,fail.
 
@@ -343,7 +347,10 @@ Turn=black,
 allBlackMoves(Pos,MoveBoardList),
 allBlackEats(Pos,EatBoardList),
 append(MoveBoardList,EatBoardList,PosList),!;
-allWhiteMoves(Pos,PosList)
+Turn=white,
+allWhiteMoves(Pos,MoveBoardList),
+allWhiteEats(Pos,EatBoardList),
+append(MoveBoardList,EatBoardList,PosList),!
 ).
 
 max_to_move(Pos) :-
@@ -360,7 +367,9 @@ Turn=white.
 
 alphabeta(Pos,Alpha,Beta,GoodPos,Val,Depth) :-
    moves(Pos,PosList,Depth), !,    /*user-provided*/
+   write(PosList),nl,nl,
    boundedbest(PosList,Alpha,Beta,GoodPos,Val,Depth).
+
 alphabeta(Pos,_,_,_,Val,_) :- staticval(Pos,Val).  /*user-provided*/
 
 boundedbest([Pos | PosList], Alpha, Beta, GoodPos, GoodVal,Depth) :-
