@@ -58,11 +58,12 @@ possible_moves_regular_computer(c(X,Y,regular),Res) :-
     NewX is X-1,
     NewY is Y+1,
     NewYSecond is Y-1,
-    (   inRange(NewY,N),inRange(NewX,N),A=[[NewX,NewY]], \+p(NewX,NewY,_), \+c(NewX,NewY,_), ! ;
+    (   inRange(NewY,N),inRange(NewX,N),A=[[c(X,Y,regular),c(NewX,NewY,regular)]], \+p(NewX,NewY,_), \+c(NewX,NewY,_), ! ;
     A=[]),
-    (   inRange(NewYSecond,N),inRange(NewX,N),B=[[NewX,NewYSecond]], \+p(NewX,NewYSecond,_), \+c(NewX,NewYSecond,_), !;
+    (   inRange(NewYSecond,N),inRange(NewX,N),B=[[c(X,Y,regular),c(NewX,NewYSecond,regular)]], \+p(NewX,NewYSecond,_), \+c(NewX,NewYSecond,_), !;
     B=[]),
-    append(A,B,Res).
+    append(A,B,Res),
+    Res \= [].
 
 possible_moves_regular_player(p(X,Y,regular),Res):-
     size(N),
@@ -76,11 +77,11 @@ possible_moves_regular_player(p(X,Y,regular),Res):-
     append(A,B,Res).
 
 all_possible_moves_regular_player(Res):-
-    p(X,Y,regular),
-    possible_moves_regular_player(p(X,Y,regular),Res).
+    findall(L,
+    possible_moves_regular_player(p(_,_,regular),L),Res).
 all_possible_moves_regular_computer(Res):-
-    c(X,Y,regular),
-    possible_moves_regular_computer(c(X,Y,regular),Res).
+    findall(L,
+    (c(X,Y,regular),possible_moves_regular_computer(c(X,Y,regular),L)),Res).
 
 isEmpty(X,Y) :- %True if position is empty
     \+ c(X,Y,_),
@@ -191,7 +192,7 @@ performEat(StartPos,EatArray,EndPos) :-
 % The alpha-beta algorithm
 
 alphabeta( Pos, Alpha, Beta, GoodPos, Val)  :-
-  possible_moves_regular_computer(Pos,PosList), !,
+  all_possible_moves_regular_computer(PosList), !,
   boundedbest( PosList, Alpha, Beta, GoodPos, Val);
   staticval(Val).                              % Static value of Pos
 
