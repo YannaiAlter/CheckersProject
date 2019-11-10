@@ -243,7 +243,56 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard)),
     NewPos=(NewBoard,white).
     
+
+
+blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
+    Pos=(Board,_),
+    get(Board,Row,Column,Res),
+    Res=bc,
+    RightEnemyRow is Row-1,
+    RightEnemyColumn is Column-1,
+    size(N),
+    NewN is N-1,
+    inRange(RightEnemyRow,0,NewN),
+    inRange(RightEnemyColumn,0,NewN),
+    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
+    Value=w,
+    RightMoveRow is Row-2,
+    RightMoveColumn is Column-2,
+    inRange(RightMoveRow,0,NewN),
+    inRange(RightMoveColumn,0,NewN),
+    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is n
+    SecondValue=n,
+    set(Board,Row,Column,n,BoardAfterDeleteBlack),
+    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,bc,NewBoard),
+    NewPos=(NewBoard,white).
     
+
+    blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
+    Pos=(Board,_),
+    get(Board,Row,Column,Res),
+    Res=bc,
+    RightEnemyRow is Row-1,
+    RightEnemyColumn is Column+1,
+    size(N),
+    NewN is N-1,
+    inRange(RightEnemyRow,0,NewN),
+    inRange(RightEnemyColumn,0,NewN),
+    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
+    Value=w,
+    RightMoveRow is Row-2,
+    RightMoveColumn is Column+2,
+    inRange(RightMoveRow,0,NewN),
+    inRange(RightMoveColumn,0,NewN),
+    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is n
+    SecondValue=n,
+    set(Board,Row,Column,n,BoardAfterDeleteBlack),
+    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,bc,NewBoard),
+    NewPos=(NewBoard,white).
+
+
     blackEatWhite(Pos,Row,Column,NewPos) :-
     Pos=(Board,_),
     get(Board,Row,Column,Res),
@@ -320,13 +369,17 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     blackEatWhiteAllPos(Pos,Row,Column,ArrayOfBoards) :-
      findall(Result,blackEatWhite(Pos,Row,Column,Result),List),
      (List=[],ArrayOfBoards=[],!;List=[LeftEatPos|RightEatPos],
+     write(List),
      NewRow is Row+2,
      NewLeftColumn is Column-2,
      NewRightColumn is Column+2,
+     NewCrownRow is Row-2,
      blackEatWhiteAllPos(LeftEatPos,NewRow,NewLeftColumn,AllLeftEat), %changing to black in order to find more eats
      blackEatWhiteAllPos(RightEatPos,NewRow,NewRightColumn,AllRightEat),
+     %blackEatWhiteAllPos(LeftEatPos,NewCrownRow,NewLeftColumn,AllCrownLeftEat), %This for crowns
+     %blackEatWhiteAllPos(RightEatPos,NewCrownRow,NewRightColumn,AllCrownRightEat),%This for crowns
      append(List,AllLeftEat,List1),
-     append(List1,AllRightEat,ArrayOfBoards)).
+     append(List1,AllRightEat,ArrayOfBoards)).%todo
 
     whiteEatBlackAllPos([],_,_,[]):-!.
     whiteEatBlackAllPos(Pos,Row,Column,ArrayOfBoards) :-
