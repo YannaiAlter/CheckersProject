@@ -68,6 +68,8 @@ printArray(Array,N) :-
 Array = [Head|Tail],
 (Head=w,ansi_format([bold,fg(yellow)], '~w', [Head]),!;
 Head=b,ansi_format([bold,fg(red)], '~w', [Head]),!;
+Head=bc,ansi_format([bold,fg(red)], 'B', [Head]),!;
+Head=wc,ansi_format([bold,fg(red)], 'W', [Head]),!;
 write(Head),!),
 write(" "),
 NewRows is N-1,
