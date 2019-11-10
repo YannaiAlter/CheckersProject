@@ -93,7 +93,8 @@ moveBlack(Pos,Row,Column,NewPos) :-
     get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
     Value=n,
     set(Board,Row,Column,n,NewBoardTemp),
-    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard),
+    (LeftMoveRow = NewN, set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,bc,NewBoard),!;
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard)),
     NewPos = (NewBoard,white).
 
 moveBlack(Pos,Row,Column,NewPos) :-
@@ -112,7 +113,8 @@ moveBlack(Pos,Row,Column,NewPos) :-
     get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is n
     Value=n,
     set(Board,Row,Column,n,NewBoardTemp),
-    set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),
+    (NewN = RightMoveRow, set(NewBoardTemp,RightMoveRow,RightMoveColumn,bc,NewBoard),!;
+    set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),!),
     NewPos=(NewBoard,white).
 
 
@@ -132,7 +134,8 @@ moveWhite(Pos,Row,Column,NewPos) :-
     get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
     Value=n,
     set(Board,Row,Column,n,NewBoardTemp),
-    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,w,NewBoard),
+    (NewN=LeftMoveRow,set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,wc,NewBoard),!;
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,w,NewBoard),!),
     NewPos = (NewBoard,black).
 
 moveWhite(Pos,Row,Column,NewPos) :-
@@ -151,7 +154,8 @@ moveWhite(Pos,Row,Column,NewPos) :-
     get(Board,RightMoveRow,RightMoveColumn,Value), %Board[NewPos] is n
     Value=n,
     set(Board,Row,Column,n,NewBoardTemp),
-    set(NewBoardTemp,RightMoveRow,RightMoveColumn,w,NewBoard),
+    (NewN=RightMoveRow,set(NewBoardTemp,RightMoveRow,RightMoveColumn,wc,NewBoard),!;
+    set(NewBoardTemp,RightMoveRow,RightMoveColumn,w,NewBoard),!),
     NewPos=(NewBoard,black).
 
 realMoveWhite(Row,Column,NewRow,NewColumn) :-
@@ -232,7 +236,8 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     SecondValue=n,
     set(Board,Row,Column,n,BoardAfterDeleteBlack),
     set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
-    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard),
+    (NewN=RightMoveRow,set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,bc,NewBoard),!;
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard)),
     NewPos=(NewBoard,white).
     
     
@@ -256,7 +261,8 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     SecondValue=n,
     set(Board,Row,Column,n,BoardAfterDeleteBlack),
     set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
-    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard),
+    (NewN=RightMoveRow,set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,bc,NewBoard),!;
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard),!),
     NewPos=(NewBoard,white).
 
   whiteEatBlack(Pos,Row,Column,NewPos) :-
@@ -279,7 +285,8 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     SecondValue=n,
     set(Board,Row,Column,n,BoardAfterDeleteBlack),
     set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
-    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,w,NewBoard),
+    (NewN=RightMoveRow,set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,wc,NewBoard),!;
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,w,NewBoard),!),
     NewPos=(NewBoard,black).
 
     whiteEatBlack(Pos,Row,Column,NewPos) :-
@@ -302,7 +309,8 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     SecondValue=n,
     set(Board,Row,Column,n,BoardAfterDeleteBlack),
     set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
-    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,w,NewBoard),
+    (NewN=RightMoveRow,set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,wc,NewBoard),!;
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,w,NewBoard),!),
     NewPos=(NewBoard,black).
 
     blackEatWhiteAllPos([],_,_,[]):-!.
