@@ -170,7 +170,8 @@ realMoveWhite(Row,Column,NewRow,NewColumn) :-
     get(Board,NewRow,NewColumn,Value), %Board[NewPos] is n
     Value=n,
     set(Board,Row,Column,n,NewBoard),
-    set(NewBoard,NewRow,NewColumn,w,FinalBoard),
+    (NewRow=0,set(NewBoard,NewRow,NewColumn,wc,FinalBoard),!;
+    set(NewBoard,NewRow,NewColumn,w,FinalBoard),!),
     retractall(array(_)),
     assert(array((FinalBoard,black))),
     printArray((FinalBoard,black)).
