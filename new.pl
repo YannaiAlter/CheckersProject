@@ -79,11 +79,49 @@ inRange(X,Start,End) :-
 X =< End,
 X >= Start.
 
+moveBlack(Pos,Row,Column,NewPos) :- %crownBlackMove
+    Pos=(Board,Turn),
+    Turn=black,
+    get(Board,Row,Column,Res),
+    Res=bc,
+    LeftMoveRow is Row-1,
+    LeftMoveColumn is Column+1,
+%    RightMoveRow is Row+1,
+%    RightMoveColumn is Column+1,
+    size(N),
+    NewN is N-1,
+    inRange(LeftMoveRow,0,NewN),
+    inRange(LeftMoveColumn,0,NewN),
+    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoardTemp),
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,Res,NewBoard),
+    NewPos = (NewBoard,white).
+
+moveBlack(Pos,Row,Column,NewPos) :- %crownBlackMove
+    Pos=(Board,Turn),
+    Turn=black,
+    get(Board,Row,Column,Res),
+    Res=bc,
+    LeftMoveRow is Row-1,
+    LeftMoveColumn is Column-1,
+%    RightMoveRow is Row+1,
+%    RightMoveColumn is Column+1,
+    size(N),
+    NewN is N-1,
+    inRange(LeftMoveRow,0,NewN),
+    inRange(LeftMoveColumn,0,NewN),
+    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoardTemp),
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,Res,NewBoard),
+    NewPos = (NewBoard,white).
+
 moveBlack(Pos,Row,Column,NewPos) :-
     Pos=(Board,Turn),
     Turn=black,
     get(Board,Row,Column,Res),
-    Res=b,
+    (Res=b,!;Res=bc),
     LeftMoveRow is Row+1,
     LeftMoveColumn is Column-1,
 %    RightMoveRow is Row+1,
@@ -96,14 +134,14 @@ moveBlack(Pos,Row,Column,NewPos) :-
     Value=n,
     set(Board,Row,Column,n,NewBoardTemp),
     (LeftMoveRow = NewN, set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,bc,NewBoard),!;
-    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,b,NewBoard)),
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,Res,NewBoard)),
     NewPos = (NewBoard,white).
 
 moveBlack(Pos,Row,Column,NewPos) :-
     Pos=(Board,Turn),
     Turn=black,
     get(Board,Row,Column,Res),
-    Res=b,
+    (Res=b,!;Res=bc),
 %    LeftMoveRow is Row+1,
 %    LeftMoveColumn is Column-1,
     RightMoveRow is Row+1,
@@ -116,8 +154,47 @@ moveBlack(Pos,Row,Column,NewPos) :-
     Value=n,
     set(Board,Row,Column,n,NewBoardTemp),
     (NewN = RightMoveRow, set(NewBoardTemp,RightMoveRow,RightMoveColumn,bc,NewBoard),!;
-    set(NewBoardTemp,RightMoveRow,RightMoveColumn,b,NewBoard),!),
+    set(NewBoardTemp,RightMoveRow,RightMoveColumn,Res,NewBoard),!),
     NewPos=(NewBoard,white).
+
+
+moveWhite(Pos,Row,Column,NewPos) :- % crown
+    Pos=(Board,Turn),
+    Turn=white,
+    get(Board,Row,Column,Res),
+    Res=wc,
+    LeftMoveRow is Row-1,
+    LeftMoveColumn is Column-1,
+%    RightMoveRow is Row+1,
+%    RightMoveColumn is Column-1,
+    size(N),
+    NewN is N-1,
+    inRange(LeftMoveRow,0,NewN),
+    inRange(LeftMoveColumn,0,NewN),
+    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoardTemp),
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,wc,NewBoard),
+    NewPos = (NewBoard,black).
+
+moveWhite(Pos,Row,Column,NewPos) :- %crown
+    Pos=(Board,Turn),
+    Turn=white,
+    get(Board,Row,Column,Res),
+    Res=wc,
+    LeftMoveRow is Row-1,
+    LeftMoveColumn is Column+1,
+%    RightMoveRow is Row+1,
+%    RightMoveColumn is Column+1,
+    size(N),
+    NewN is N-1,
+    inRange(LeftMoveRow,0,NewN),
+    inRange(LeftMoveColumn,0,NewN),
+    get(Board,LeftMoveRow,LeftMoveColumn,Value), %Board[NewPos] is n
+    Value=n,
+    set(Board,Row,Column,n,NewBoardTemp),
+    set(NewBoardTemp,LeftMoveRow,LeftMoveColumn,wc,NewBoard),
+    NewPos = (NewBoard,black).
 
 
 moveWhite(Pos,Row,Column,NewPos) :-
@@ -222,7 +299,7 @@ printAllMoves(Tail).
 blackEatWhite(Pos,Row,Column,NewPos) :-
     Pos=(Board,_),
     get(Board,Row,Column,Res),
-    Res=b,
+    (Res=b;Res=bc),
     RightEnemyRow is Row+1,
     RightEnemyColumn is Column-1,
     size(N),
@@ -230,7 +307,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :-
     inRange(RightEnemyRow,0,NewN),
     inRange(RightEnemyColumn,0,NewN),
     get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
-    Value=w,
+    (Value=w;Value=wc),
     RightMoveRow is Row+2,
     RightMoveColumn is Column-2,
     inRange(RightMoveRow,0,NewN),
@@ -256,7 +333,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
     inRange(RightEnemyRow,0,NewN),
     inRange(RightEnemyColumn,0,NewN),
     get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
-    Value=w,
+    (Value=w;Value=wc),
     RightMoveRow is Row-2,
     RightMoveColumn is Column-2,
     inRange(RightMoveRow,0,NewN),
@@ -280,7 +357,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
     inRange(RightEnemyRow,0,NewN),
     inRange(RightEnemyColumn,0,NewN),
     get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
-    Value=w,
+    (Value=w;Value=wc),
     RightMoveRow is Row-2,
     RightMoveColumn is Column+2,
     inRange(RightMoveRow,0,NewN),
@@ -296,7 +373,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
     blackEatWhite(Pos,Row,Column,NewPos) :-
     Pos=(Board,_),
     get(Board,Row,Column,Res),
-    Res=b,
+    (Res=b;Res=bc),
     RightEnemyRow is Row+1,
     RightEnemyColumn is Column+1,
     size(N),
@@ -304,7 +381,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
     inRange(RightEnemyRow,0,NewN),
     inRange(RightEnemyColumn,0,NewN),
     get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
-    Value=w,
+    (Value=w;Value=wc),
     RightMoveRow is Row+2,
     RightMoveColumn is Column+2,
     inRange(RightMoveRow,0,NewN),
@@ -317,6 +394,55 @@ blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
     set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,b,NewBoard),!),
     NewPos=(NewBoard,white).
 
+
+  whiteEatBlack(Pos,Row,Column,NewPos) :-
+    Pos=(Board,_),
+    get(Board,Row,Column,Res),
+    Res=wc,
+    RightEnemyRow is Row+1,
+    RightEnemyColumn is Column-1,
+    size(N),
+    NewN is N-1,
+    inRange(RightEnemyRow,0,NewN),
+    inRange(RightEnemyColumn,0,NewN),
+    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
+    (Value=b;Value=bc),
+    RightMoveRow is Row+2,
+    RightMoveColumn is Column-2,
+    inRange(RightMoveRow,0,NewN),
+    inRange(RightMoveColumn,0,NewN),
+    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is n
+    SecondValue=n,
+    set(Board,Row,Column,n,BoardAfterDeleteBlack),
+    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
+    (NewN=RightMoveRow,set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,wc,NewBoard),!;
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,wc,NewBoard),!),
+    NewPos=(NewBoard,black).
+
+whiteEatBlack(Pos,Row,Column,NewPos) :-
+    Pos=(Board,_),
+    get(Board,Row,Column,Res),
+    Res=wc,
+    RightEnemyRow is Row+1,
+    RightEnemyColumn is Column+1,
+    size(N),
+    NewN is N-1,
+    inRange(RightEnemyRow,0,NewN),
+    inRange(RightEnemyColumn,0,NewN),
+    get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
+    (Value=b;Value=bc),
+    RightMoveRow is Row+2,
+    RightMoveColumn is Column+2,
+    inRange(RightMoveRow,0,NewN),
+    inRange(RightMoveColumn,0,NewN),
+    get(Board,RightMoveRow,RightMoveColumn,SecondValue), %Board[NewPos] is n
+    SecondValue=n,
+    set(Board,Row,Column,n,BoardAfterDeleteBlack),
+    set(BoardAfterDeleteBlack,RightEnemyRow,RightEnemyColumn,n,BoardAfterDeleteEnemy),
+    (NewN=RightMoveRow,set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,wc,NewBoard),!;
+    set(BoardAfterDeleteEnemy,RightMoveRow,RightMoveColumn,wc,NewBoard),!),
+    NewPos=(NewBoard,black).
+
   whiteEatBlack(Pos,Row,Column,NewPos) :-
     Pos=(Board,_),
     get(Board,Row,Column,Res),
@@ -328,7 +454,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
     inRange(RightEnemyRow,0,NewN),
     inRange(RightEnemyColumn,0,NewN),
     get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
-    Value=b,
+    (Value=b;Value=bc),
     RightMoveRow is Row-2,
     RightMoveColumn is Column-2,
     inRange(RightMoveRow,0,NewN),
@@ -352,7 +478,7 @@ blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
     inRange(RightEnemyRow,0,NewN),
     inRange(RightEnemyColumn,0,NewN),
     get(Board,RightEnemyRow,RightEnemyColumn,Value), %Board[NewPos] is n
-    Value=b,
+    (Value=b;Value=bc),
     RightMoveRow is Row-2,
     RightMoveColumn is Column+2,
     inRange(RightMoveRow,0,NewN),
@@ -368,23 +494,20 @@ blackEatWhite(Pos,Row,Column,NewPos) :- %blackcrown
     blackEatWhiteAllPos([],_,_,[]):-!.
     blackEatWhiteAllPos(Pos,Row,Column,ArrayOfBoards) :-
      findall(Result,blackEatWhite(Pos,Row,Column,Result),List),
-     (List=[],ArrayOfBoards=[],!;List=[LeftEatPos|RightEatPos],
-     write(List),
+     (List=[],ArrayOfBoards=[],!;List=[RightEatPos|LeftEatPos],
+     write(LeftEatPos),
      NewRow is Row+2,
      NewLeftColumn is Column-2,
      NewRightColumn is Column+2,
-     NewCrownRow is Row-2,
      blackEatWhiteAllPos(LeftEatPos,NewRow,NewLeftColumn,AllLeftEat), %changing to black in order to find more eats
      blackEatWhiteAllPos(RightEatPos,NewRow,NewRightColumn,AllRightEat),
-     %blackEatWhiteAllPos(LeftEatPos,NewCrownRow,NewLeftColumn,AllCrownLeftEat), %This for crowns
-     %blackEatWhiteAllPos(RightEatPos,NewCrownRow,NewRightColumn,AllCrownRightEat),%This for crowns
      append(List,AllLeftEat,List1),
-     append(List1,AllRightEat,ArrayOfBoards)).%todo
+     append(List1,AllRightEat,ArrayOfBoards)).
 
     whiteEatBlackAllPos([],_,_,[]):-!.
     whiteEatBlackAllPos(Pos,Row,Column,ArrayOfBoards) :-
      findall(Result,whiteEatBlack(Pos,Row,Column,Result),List),
-     (List=[],ArrayOfBoards=[],!;List=[LeftEatPos|RightEatPos],
+     (List=[],ArrayOfBoards=[],!;List=[RightEatPos|LeftEatPos],
      NewRow is Row-2,
      NewLeftColumn is Column-2,
      NewRightColumn is Column+2,
@@ -469,7 +592,7 @@ betterof(_,_,Pos1,Val1,Pos1,Val1).
 changeTurn():-
 array((Board,_)),
 retractall(array(_)),
-assert(array((Board,white))).
+assert(array((Board,black))).
 
 makeBlackMove() :-
     array(CurPos),
