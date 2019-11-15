@@ -495,7 +495,6 @@ whiteEatBlack(Pos,Row,Column,NewPos) :-
     blackEatWhiteAllPos(Pos,Row,Column,ArrayOfBoards) :-
      findall(Result,blackEatWhite(Pos,Row,Column,Result),List),
      (List=[],ArrayOfBoards=[],!;List=[RightEatPos|LeftEatPos],
-     write(LeftEatPos),
      NewRow is Row+2,
      NewLeftColumn is Column-2,
      NewRightColumn is Column+2,

@@ -58,30 +58,29 @@ possible_moves_regular_computer(c(X,Y,regular),Res) :-
     NewX is X-1,
     NewY is Y+1,
     NewYSecond is Y-1,
-    (   inRange(NewY,N),inRange(NewX,N),A=[[c(X,Y,regular),c(NewX,NewY,regular)]], \+p(NewX,NewY,_), \+c(NewX,NewY,_), ! ;
+    (   inRange(NewY,N),inRange(NewX,N),A=[c(NewX,NewY,regular)], \+p(NewX,NewY,_), \+c(NewX,NewY,_), ! ;
     A=[]),
-    (   inRange(NewYSecond,N),inRange(NewX,N),B=[[c(X,Y,regular),c(NewX,NewYSecond,regular)]], \+p(NewX,NewYSecond,_), \+c(NewX,NewYSecond,_), !;
+    (   inRange(NewYSecond,N),inRange(NewX,N),B=[c(NewX,NewYSecond,regular)], \+p(NewX,NewYSecond,_), \+c(NewX,NewYSecond,_), !;
     B=[]),
-    append(A,B,Res),
-    Res \= [].
+    append(A,B,Res).
 
 possible_moves_regular_player(p(X,Y,regular),Res):-
     size(N),
     NewX is X+1,
     NewY is Y+1,
     NewYSecond is Y-1,
-    (   inRange(NewY,N),inRange(NewX,N),A=[[NewX,NewY]], \+c(NewX,NewY,_), \+p(NewX,NewY,_) ,! ;
+    (   inRange(NewY,N),inRange(NewX,N),A=[p(NewX,NewY,_)], \+c(NewX,NewY,_), \+p(NewX,NewY,_) ,! ;
     A=[]),
-    (   inRange(NewYSecond,N),inRange(NewX,N),B=[[NewX,NewYSecond]], \+ c(NewX,NewYSecond,_), \+p(NewX,NewYSecond,_), !;
+    (   inRange(NewYSecond,N),inRange(NewX,N),B=[p(NewX,NewYSecond)], \+ c(NewX,NewYSecond,_), \+p(NewX,NewYSecond,_), !;
     B=[]),
     append(A,B,Res).
 
 all_possible_moves_regular_player(Res):-
-    findall(L,
-    possible_moves_regular_player(p(_,_,regular),L),Res).
+    p(X,Y,regular),
+    possible_moves_regular_player(p(X,Y,regular),Res).
 all_possible_moves_regular_computer(Res):-
-    findall(L,
-    (c(X,Y,regular),possible_moves_regular_computer(c(X,Y,regular),L)),Res).
+    c(X,Y,regular),
+    possible_moves_regular_computer(c(X,Y,regular),Res).
 
 isEmpty(X,Y) :- %True if position is empty
     \+ c(X,Y,_),
@@ -192,7 +191,8 @@ performEat(StartPos,EatArray,EndPos) :-
 % The alpha-beta algorithm
 
 alphabeta( Pos, Alpha, Beta, GoodPos, Val)  :-
-  all_possible_moves_regular_computer(PosList), !,
+  possible_moves_regular_computer(Pos,PosList), !,
+  \+PosList=[],
   boundedbest( PosList, Alpha, Beta, GoodPos, Val);
   staticval(Val).                              % Static value of Pos
 
